@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Table Display</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      box-sizing: border-box;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://media.licdn.com/dms/image/C4E05AQH1yJ3kH28Q1Q/videocover-high/0/1664394781322?e=2147483647&v=beta&t=fnvNQISuaeNAZ5Cx85E-k22ohT6l_Soi-etjfLHSjTk');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #fff;
+    }
+    .welcome-banner {
+      width: 100%;
+      text-align: center;
+      padding: 40px 0;
+      background: linear-gradient(135deg, rgba(0, 183, 255, 0.2), rgba(0, 91, 181, 0.2));
+      margin-bottom: 30px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    .welcome-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 36px;
+      color: #00ff9d;
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5),
+                   0 0 20px rgba(0, 255, 157, 0.3),
+                   0 0 30px rgba(0, 255, 157, 0.1);
+      letter-spacing: 4px;
+      margin: 0;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px rgba(0, 255, 157, 0.5),
+                     0 0 20px rgba(0, 255, 157, 0.3),
+                     0 0 30px rgba(0, 255, 157, 0.1);
+      }
+      to {
+        text-shadow: 0 0 20px rgba(0, 255, 157, 0.7),
+                     0 0 30px rgba(0, 255, 157, 0.5),
+                     0 0 40px rgba(0, 255, 157, 0.3);
+      }
+    }
+    .table-container, .actions-container, .additional-tables-container, 
+    .complex-join-container, .data-form {
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      margin: 20px 0;
+      width: 90%;
+      max-width: 1000px;
+      color: #444;
+    }
+    .additional-tables-container,
+    .complex-join-container {
+      width: 95%;
+      max-width: 1200px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .table-container {
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      margin: 20px 0;
+      width: 95%; /* Increased from 90% */
+      max-width: 1200px; /* Increased from 1000px */
+      color: #444;
+      overflow-x: auto; /* Added horizontal scroll for wide tables */
+    }
+    h2 {
+      color: #444;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 16px;
+      table-layout: auto; /* Changed from fixed to auto */
+      min-width: 800px; /* Added minimum width */
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #ddd;
+      min-width: 120px; /* Added minimum width for columns */
+      max-width: 300px; /* Added maximum width for columns */
+      white-space: nowrap; /* Prevent text wrapping */
+      overflow: hidden;
+      text-overflow: ellipsis; /* Add ellipsis for overflowing text */
+    }
+    th {
+      background-color: #0073e6;
+      color: white;
+      font-weight: bold;
+    }
+    td {
+      background-color: #f9f9f9;
+    }
+    tr:hover td {
+      background-color: #f1f1f1;
+    }
+
+    .additional-tables-container button, 
+    .complex-join-container button, 
+    #deleteForm button,
+    .data-form button,
+    .edit-save,
+    .edit-cancel {
+      background: linear-gradient(45deg, #8E8E99, #0C0C60);
+      color: #fff;
+      font-size: 16px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 5px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+      flex:0 1 auto;
+      min-width:150px;
+    }
+
+    .additional-tables-container button:hover, 
+    .complex-join-container button:hover, 
+    #deleteForm button:hover,
+    .data-form button:hover {
+      background: linear-gradient(45deg, #8E8E99, #0C0C60);
+      box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+      transform: translateY(-2px);
+    }
+
+    /* Style for Delete Form */
+    #deleteForm {
+      width: 90%;
+      max-width: 1000px;
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      margin: 20px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    #deleteForm label {
+      font-size: 16px;
+      color: #444;
+      margin-top: 10px;
+    }
+    #deleteForm input {
+      width: 100%;
+      max-width: 500px;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    #deleteForm button {
+      align-self: flex-start;
+    }
+    .data-form {
+    width: 90%;
+    max-width: 1000px;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    margin: 20px 0;
+    }
+    .data-form h3 {
+      color: #444;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+    .data-form label {
+      display: block;
+      margin-top: 10px;
+      color: #444;
+      font-size: 16px;
+    }
+    .data-form input,
+    .data-form select {
+      width: 100%;
+      max-width: 500px;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .data-form button {
+      background-color: #0073e6;
+      color: #fff;
+      font-size: 16px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .data-form button:hover {
+      background-color: #005bb5;
+    }
+    #deleteForm {
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    #deleteForm {
+      /* Add a title to match insert form */
+      position: relative;
+      padding-top: 40px;
+    }
+    #deleteForm::before {
+      content: 'Delete Record';
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #444;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    /* Make select input match insert form style */
+    #deleteForm select {
+      width: 100%;
+      max-width: 500px;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    /* Add spacing between forms */
+    #deleteForm {
+      margin-bottom: 30px;
+    }
+    .edit-icon {
+    cursor: pointer;
+    opacity: 0.6;
+    margin-left: 8px;
+    vertical-align: middle;
+    }
+    .edit-icon:hover {
+      opacity: 1;
+    }
+    .editable-cell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-height: 40px; /* Increased minimum height */
+      padding: 4px;
+    }
+    .edit-input {
+      width: calc(100% - 70px); /* Increased space for input */
+      min-width: 175px; /* Minimum width for input */
+      padding: 6px 10px; /* Increased padding */
+      border: 2px solid #0073e6;
+      border-radius: 4px;
+      font-size: 14px; /* Slightly larger font */
+      margin-right: 8px;
+      height: 36px; /* Fixed height */
+    }
+    .edit-controls {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .edit-save,
+    .edit-cancel {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      color: white;
+      min-width: 36px; /* Minimum width for buttons */
+      height: 36px; /* Fixed height */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .edit-save {
+      background-color: #28a745;
+    }
+    .edit-cancel {
+      background-color: #dc3545;
+    }
+
+    /* Toast notification styles */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background-color: #333;
+      color: white;
+      border-radius: 4px;
+      display: none;
+      animation: slideIn 0.3s, fadeOut 0.3s 2.7s;
+      z-index: 1000;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    .toast.success {
+      background-color: #28a745;
+    }
+    .toast.error {
+      background-color: #dc3545;
+    }
+     th {
+      background: linear-gradient(45deg, #8E8E99, #0C0C60);
+      color: white;
+      font-weight: bold;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Form styling updates */
+    .data-form select,
+    .data-form input {
+      border: 2px solid #8E8E99;
+      border-radius: 5px;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    .data-form select:focus,
+    .data-form input:focus {
+      border-color: #00ff9d;
+      box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+      outline: none;
+    }
+
+    /* Edit controls update */
+    .edit-save {
+      background: linear-gradient(45deg, #8E8E99, #0C0C60);
+      font-size: 12px;
+    }
+
+    .edit-cancel {
+      background: linear-gradient(45deg, #986a00, #ff9d00);
+      font-size: 12px;
+    }
+
+    /* Toast notification update */
+    .toast.success {
+      background: linear-gradient(45deg, #8E8E99, #0C0C60);
+      color: white;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+    }
+
+    .toast.error {
+      background: linear-gradient(45deg, #986a00, #ff9d00);
+      color: white;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+    }
+    #cabinete, #medici, #asistenti, #pacienti, #consultatii, #retete, #medicamente, #reteta_medicament {
+      margin: 30px auto; /* Center tables and add more vertical space */
+    }
+  </style>
+</head>
+<body>
+  <div class="welcome-banner">
+    <h1 class="welcome-text">WELCOME SYSTEM ADMINISTRATOR!</h1>
+  </div>
+  <div class="table-container">
+    <h2>Proiect BD: <span id="table-name">Cabinete medicale</span></h2>
+    <table id="data-table">
+      <thead>
+        <tr id="table-header"></tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Additional Tables Buttons -->
+  <div class="additional-tables-container">
+    <button onclick="showTable('cabinete')">Show Cabinete</button>
+    <button onclick="showTable('medici')">Show Medici</button>
+    <button onclick="showTable('asistenti')">Show Asistenti</button>
+    <button onclick="showTable('pacienti')">Show Pacienti</button>
+    <button onclick="showTable('consultatii')">Show Consultatii</button>
+    <button onclick="showTable('retete')">Show Retete</button>
+    <button onclick="showTable('medicamente')">Show Medicamente</button>
+    <button onclick="showTable('reteta_medicament')">Show Reteta_Medicament</button>
+  </div>
+
+  <!-- Complex and Join Query Buttons -->
+  <div class="complex-join-container">
+    <button onclick="fetchComplexQuery()">Execute Complex Query</button>
+    <button onclick="fetchJoinQuery()">Execute Join Query</button>
+  </div>
+  <!-- Pt toast de update -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Additional Tables Placeholder -->
+  <div id="cabinete" class="table-container" style="display: none;">
+    <h2>Cabinete Table</h2>
+    <table>
+      <thead><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="medici" class="table-container" style="display: none;">
+    <h2>Medici Table</h2>
+    <table>
+      <thead><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="asistenti" class="table-container" style="display: none;">
+    <h2>Asistenti Table</h2>
+    <table>
+      <thead><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="pacienti" class="table-container" style="display: none;">
+    <h2>Pacienti Table</h2>
+    <table>
+      <thead><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="consultatii" class="table-container" style="display: none;">
+    <h2>Consultatii Table</h2>
+    <table>
+      <thead><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="retete" class="table-container" style="display: none;">
+    <h2>Retete Table</h2>
+    <table>
+      <thead><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="medicamente" class="table-container" style="display: none;">
+    <h2>Medicamente Table</h2>
+    <table>
+      <thead><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="reteta_medicament" class="table-container" style="display: none;">
+    <h2>Reteta Medicament Table</h2>
+    <table>
+      <thead><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Delete Form -->
+  <form id="deleteForm" class="data-form">
+  <label for="tableName">Table Name:</label>
+  <select id="tableName" name="tableName" required>
+    <option value="">Select a table</option>
+    <option value="cabinete">Cabinete</option>
+    <option value="medici">Medici</option>
+    <option value="asistenti">Asistenti</option>
+    <option value="pacienti">Pacienti</option>
+    <option value="consultatii">Consultatii</option>
+    <option value="retete">Retete</option>
+    <option value="medicamente">Medicamente</option>
+    <option value="reteta_medicament">Reteta Medicament</option>
+  </select>
+
+  <label for="idValue">ID Value:</label>
+  <input type="text" id="idValue" name="idValue" required>
+
+  <button type="submit">Delete</button>
+</form>
+
+  <form id="insertForm" class="data-form">
+    <h3>Insert New Record</h3>
+    <label for="insertTableName">Table Name:</label>
+    <select id="insertTableName" name="insertTableName" required>
+      <option value="">Select a table</option>
+      <option value="cabinete">Cabinete</option>
+      <option value="medici">Medici</option>
+      <option value="asistenti">Asistenti</option>
+      <option value="pacienti">Pacienti</option>
+      <option value="consultatii">Consultatii</option>
+      <option value="retete">Retete</option>
+      <option value="medicamente">Medicamente</option>
+      <option value="reteta_medicament">Reteta Medicament</option>
+    </select>
+
+    <div id="dynamicFields"></div>
+    
+    <button type="submit">Insert</button>
+  </form>
+  <script>
+    const tableMap = {
+      cabinete: "cabinete",
+      medici: "medici",
+      asistenti: "asistenti",
+      pacienti: "pacienti",
+      consultatii: "consultatii",
+      retete: "retete",
+      medicamente: "medicamente",
+      reteta_medicament: "reteta_medicament"
+    };
+
+    let currentTable = null;
+
+    async function showTable(tableId) {
+      const containerId = tableMap[tableId];
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error(`Container not found for table ID: ${tableId}`);
+        return;
+      }
+
+      if (currentTable === containerId) {
+        container.style.display = 'none';
+        currentTable = null;
+        return;
+      }
+      if (currentTable) {
+        const previousContainer = document.getElementById(currentTable);
+        if (previousContainer) {
+          previousContainer.style.display = 'none';
+        }
+      }
+
+      try {
+        const response = await fetch(`http://localhost:8080/data-fetch/${tableId}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+        const data = await response.json();
+        container.style.display = 'block';
+        currentTable = containerId;
+
+        const headerRow = container.querySelector("thead tr");
+        headerRow.innerHTML = '';
+        data.columns.forEach(column => {
+          const th = document.createElement("th");
+          th.textContent = column;
+          headerRow.appendChild(th);
+        });
+
+        const body = container.querySelector("tbody");
+        body.innerHTML = '';
+        data.rows.forEach(row => {
+          const tr = document.createElement("tr");
+          data.columns.forEach(column => {
+            const td = document.createElement("td");
+            const cellDiv = document.createElement("div");
+            cellDiv.className = 'editable-cell';
+            
+            const textSpan = document.createElement("span");
+            textSpan.textContent = row[column];
+            cellDiv.appendChild(textSpan);
+
+            // Add edit icon
+            const editIcon = document.createElement("span");
+            editIcon.innerHTML = `
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            `;
+            editIcon.className = 'edit-icon';
+            editIcon.onclick = () => makeEditable(cellDiv, tableId, column, row);
+            cellDiv.appendChild(editIcon);
+
+            td.appendChild(cellDiv);
+            tr.appendChild(td);
+          });
+          body.appendChild(tr);
+        });
+      } catch (error) {
+        console.error("Error fetching table data:", error);
+        showToast('Error fetching table data', 'error');
+      }
+    }
+
+    async function getTableColumns(tableName) {
+      try {
+        const response = await fetch(`http://localhost:8080/data-fetch/${tableName}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const data = await response.json();
+        return data.columns;
+      } catch (error) {
+        console.error("Error fetching table columns:", error);
+        return [];
+      }
+    }
+
+    document.getElementById('insertTableName').addEventListener('change', async function() {
+      const tableName = this.value;
+      const dynamicFields = document.getElementById('dynamicFields');
+      dynamicFields.innerHTML = '';
+
+      if (tableName) {
+        const columns = await getTableColumns(tableName);
+        
+        columns.forEach(column => {
+          const formGroup = document.createElement('div');
+          formGroup.className = 'form-group';
+          
+          const label = document.createElement('label');
+          label.htmlFor = column;
+          label.textContent = column;
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.id = column;
+          input.name = column;
+          input.required = true;
+          
+          formGroup.appendChild(label);
+          formGroup.appendChild(input);
+          dynamicFields.appendChild(formGroup);
+        });
+      }
+    });
+
+    document.getElementById('insertForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      
+      const tableName = document.getElementById('insertTableName').value;
+      const formData = {};
+      
+      const inputs = this.querySelectorAll('input');
+      inputs.forEach(input => {
+        formData[input.name] = input.value;
+      });
+
+      try {
+        const response = await fetch(`http://localhost:8080/insert/${tableName}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        
+        const result = await response.json();
+        console.log('Insert successful:', result);
+        
+        // Refresh the table display
+        if (currentTable === tableName) {
+          showTable(tableName);
+        }
+        
+        // Clear the form
+        this.reset();
+        document.getElementById('dynamicFields').innerHTML = '';
+        
+        alert('Record inserted successfully!');
+      } catch (error) {
+        console.error('Error inserting record:', error);
+        alert('Error inserting record. Please try again.');
+      }
+    });
+    const deleteForm = document.getElementById('deleteForm');
+    deleteForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const tableName = document.getElementById('tableName').value;
+    const idValue = document.getElementById('idValue').value;
+    const confirmDelete = confirm(`Are you sure you want to delete this record from ${tableName}?`);
+    if (!confirmDelete) {
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:8080/delete/${tableName}/${idValue}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+      const result = await response.json();
+      console.log(result.message);
+      // Refresh the table display if it's currently shown
+      if (currentTable === tableName) {
+        showTable(tableName);
+      }
+      // Clear the form
+      deleteForm.reset();
+
+      // Show success message
+      alert('Record deleted successfully!');
+
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      alert('Error deleting record. Please try again.');
+    }
+   });
+    function makeEditable(cellDiv, tableId, columnName, rowData) {
+    const currentValue = cellDiv.querySelector('span').textContent;
+    cellDiv.innerHTML = '';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentValue;
+    input.className = 'edit-input';
+
+    const controls = document.createElement('div');
+    controls.className = 'edit-controls';
+
+    const saveButton = document.createElement('button');
+    saveButton.textContent = '✓';
+    saveButton.className = 'edit-save';
+    saveButton.onclick = () => saveEdit(cellDiv, tableId, columnName, rowData, input.value);
+
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = '✕';
+    cancelButton.className = 'edit-cancel';
+    cancelButton.onclick = () => cancelEdit(cellDiv, currentValue);
+
+    controls.appendChild(saveButton);
+    controls.appendChild(cancelButton);
+
+    cellDiv.appendChild(input);
+    cellDiv.appendChild(controls);
+    input.focus();
+   }
+
+   async function saveEdit(cellDiv, tableId, columnName, rowData, newValue) {
+    try {
+      // Determine the ID column and value based on the table
+      let idColumn, idValue;
+      if (tableId === 'cabinete') {
+        idColumn = 'id_cabinet';
+      } else if (tableId === 'pacienti' || tableId === 'retete') {
+        idColumn = `id_${tableId.slice(0, -1)}`;
+      } else if (tableId === 'consultatii') {
+        idColumn = 'id_consultatie';
+      } else {
+        idColumn = `id_${tableId.slice(0, -1)}`;
+      }
+      idValue = rowData[idColumn];
+
+      const response = await fetch(`http://localhost:8080/update/${tableId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          columnName,
+          newValue,
+          idColumn,
+          idValue
+        })
+      });
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const result = await response.json();
+      showToast('Record updated successfully', 'success');
+
+      // Update the cell display
+      const textSpan = document.createElement('span');
+      textSpan.textContent = newValue;
+      const editIcon = document.createElement('span');
+      editIcon.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+      `;
+      editIcon.className = 'edit-icon';
+      editIcon.onclick = () => makeEditable(cellDiv, tableId, columnName, rowData);
+
+      cellDiv.innerHTML = '';
+      cellDiv.appendChild(textSpan);
+      cellDiv.appendChild(editIcon);
+     }catch (error) {
+      console.error('Error updating record:', error);
+      showToast('Error updating record', 'error');
+      cancelEdit(cellDiv, rowData[columnName]);
+     }
+   }
+   function cancelEdit(cellDiv, originalValue) {
+    const textSpan = document.createElement('span');
+    textSpan.textContent = originalValue;
+
+    const editIcon = document.createElement('span');
+    editIcon.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+      </svg>
+    `;
+    editIcon.className = 'edit-icon';
+    editIcon.onclick = () => makeEditable(cellDiv, tableId, columnName, rowData);
+
+    cellDiv.innerHTML = '';
+    cellDiv.appendChild(textSpan);
+    cellDiv.appendChild(editIcon);
+   }
+   function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type}`;
+      toast.style.display = 'block';
+
+      setTimeout(() => {toast.style.display = 'none';}, 3000);
+   }
+
+  </script>
+</body>
+</html>
+ 
