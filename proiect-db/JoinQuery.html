@@ -1,0 +1,217 @@
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join Queries</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .join-query-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 36px;
+      color: #bebebe;
+      text-shadow: 0 0 10px rgba(19, 19, 19, 0.7),
+      0 0 20px rgba(255, 0, 0, 1),
+      0 0 30px rgba(255, 0, 0, 1);
+      letter-spacing: 4px;
+      margin-bottom: 30px;
+      padding:20px;
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+    body {
+      background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://media.licdn.com/dms/image/C4E05AQH1yJ3kH28Q1Q/videocover-high/0/1664394781322?e=2147483647&v=beta&t=fnvNQISuaeNAZ5Cx85E-k22ohT6l_Soi-etjfLHSjTk');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // React Icons (Basic SVG Icons)
+    const X = ({ size = 24, onClick }) => (
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        width={size} 
+        height={size} 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+        onClick={onClick}
+        className="cursor-pointer"
+      >
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    );
+
+    const ResultsModal = ({ results, onClose, queryTitle }) => {
+      const columns = results.length > 0 ? Object.keys(results[0]) : [];
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl w-11/12 max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h2 className="text-xl font-bold text-gray-800">{queryTitle} Results</h2>
+              <button onClick={onClose} className="text-gray-600 hover:text-gray-900">
+                <X />
+              </button>
+            </div>
+            
+            <div className="overflow-auto">
+              <table className="w-full">
+                <thead className="bg-gray-100 sticky top-0">
+                  <tr>
+                    {columns.map(column => (
+                      <th 
+                        key={column} 
+                        className="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        {column}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.map((row, rowIndex) => (
+                    <tr 
+                      key={rowIndex} 
+                      className="border-b hover:bg-gray-50 transition-colors"
+                    >
+                      {columns.map(column => (
+                        <td 
+                          key={column} 
+                          className="p-3 text-sm text-gray-700"
+                        >
+                          {row[column] !== null ? String(row[column]) : 'N/A'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="p-4 border-t text-sm text-gray-500">
+              Total Results: {results.length}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const JoinQueries = () => {
+      const [modalResults, setModalResults] = React.useState(null);
+      const [modalTitle, setModalTitle] = React.useState('');
+
+      const predefinedQueries = [
+        {
+          title: "Three-Table Join",
+          description: "Este nevoie de un tabel general pentru Medici, Cabinete si Asistenti cu parametru variabil acesta fiind numele medicului",
+          endpoint: "/predefined-query-1",
+          placeholder: "Enter doctor name (optional)"
+        },
+        {
+          title: "Join medici/pacienti",
+          description: "Se doresc informatiile despre pacienti si medicii la care sunt assignati iar ca parametru variabil avand varsta maxima a pacientilor",
+          endpoint: "/predefined-query-2",
+          placeholder: "Enter max age (optional)"
+        },
+        {
+          title: "Join pacienti/consultatii",
+          description: "Un join intre pacienti si consultatii pentru verificarea corectitudinii consultatiilor e.g.: Numarul maxim de pacienti la o consultatie nu este depasit/la cate consultatii a participat un pacient",
+          endpoint: "/predefined-query-3",
+          placeholder: "Enter pacient CNP (optional)"
+        },
+        {
+          title: "Left Join consultatii/retete",
+          description: "Un left join pentru a vedea toate consultatiile in urma carora s-au eliberat sau nu reteta      (fara parametru variabil)",
+          endpoint: "/predefined-query-4",
+          placeholder: "No optional field"
+        },
+        {
+          title: "Inner Join medicamente/reteta_medicament",
+          description: "Un inner join pentru a verifica daca stocul de medicamente este suficient si toate medicamentele exista intr-o reteta din tabelul de legatura (fara parametru variabil)",
+          endpoint: "/predefined-query-5",
+          placeholder: "No optional field"
+        }
+      ];
+
+      const runPredefinedQuery = async (endpoint, index) => {
+        const userInput = document.getElementById(`input-${index}`).value;
+        
+        try {
+          const response = await fetch(`http://localhost:8080${endpoint}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ userInput })
+          });
+
+          if (!response.ok) throw new Error(`Error executing query: ${response.statusText}`);
+
+          const result = await response.json();
+          setModalResults(result);
+          setModalTitle(predefinedQueries[index].title);
+        } catch (error) {
+          console.error(error);
+          alert(`Failed to execute query: ${error.message}`);
+        }
+      };
+
+      return (
+        <div className="min-h-screen p-8 flex flex-col items-center">
+          <h1 className="join-query-text text-5xl font-bold mb-10 text-white">Join Queries</h1>
+          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-5 w-full max-w-6xl">
+            {predefinedQueries.map((query, index) => (
+              <div 
+                key={index} 
+                className="bg-white/90 rounded-lg p-6 shadow-xl transition-all hover:scale-105"
+              >
+                <h3 className="text-xl font-semibold mb-3 text-gray-800">{query.title}</h3>
+                <p className="text-gray-600 mb-4">{query.description}</p>
+                <input 
+                  type="text" 
+                  id={`input-${index}`} 
+                  placeholder={query.placeholder}
+                  className="w-full p-2 border rounded mb-4 placeholder-gray-500 text-gray-900"
+                />
+                <button 
+                  onClick={() => runPredefinedQuery(query.endpoint, index)}
+                  className="w-full bg-gray-800 text-white py-2 rounded hover:bg-blue-600 transition-colors"
+                >
+                  Run Query
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {modalResults && (
+            <ResultsModal 
+              results={modalResults} 
+              queryTitle={modalTitle}
+              onClose={() => setModalResults(null)} 
+            />
+          )}
+        </div>
+      );
+    };
+
+    ReactDOM.render(<JoinQueries />, document.getElementById('root'));
+  </script>
+</body>
+</html>
