@@ -4,76 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        /* Basic styling for the login form */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #f4f4f4;
+            --text-color: #333;
+            --error-color: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #4963a5 50%, #764bb2 100%);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background-color: firebrick;
+            min-height: 100vh;
+            padding: 20px;
+            background-attachment: fixed;
         }
+
         .login-container {
-            background-color: darkkhaki;
-            padding: 20px 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 400px;
-        }
-        h2 {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
             text-align: center;
-            margin-bottom: 20px;
-            color: yellow;
+            transition: all 0.3s ease;
         }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .login-header {
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #777;
+            font-size: 14px;
+        }
+
         .form-group {
-            margin-bottom: 15px;
+            position: relative;
+            margin-bottom: 25px;
         }
-        label {
-            display: block;
-            font-size: 14px;
-            color: #333;
+
+        .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
         }
-        input[type="text"],
-        input[type="password"] {
+
+        input {
             width: 100%;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px 12px 12px 40px;
             border: 1px solid #ddd;
-            font-size: 14px;
-            outline: none;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
-        button {
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .login-btn {
             width: 100%;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
             border: none;
-            background-color: #0066cc;
-            color: #fff;
+            border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .message {
+
+        .login-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        #message {
             margin-top: 15px;
-            text-align: center;
-            color: #e63946;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .error-message {
+            color: var(--error-color);
+        }
+
+        .success-message {
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 20px;
+                width: 95%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h2>Login</h2>
-        <div class="form-group">
-            <label for="username" style="color:yellow">Username:</label>
-            <input type="text" id="username" placeholder="Enter username" />
+        <div class="login-header">
+            <h2>Welcome Back</h2>
+            <p>Please enter your credentials</p>
         </div>
+        
         <div class="form-group">
-            <label for="password" style="color:yellow">Password:</label>
-            <input type="password" id="password" placeholder="Enter password" onkeydown="checkEnter(event)" />
+            <i class="fas fa-user"></i>
+            <input type="text" id="username" placeholder="Username" required autofocus>
         </div>
-        <button onclick="login()">Login</button>
-        <div id="message" class="message"></div>
+        
+        <div class="form-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" placeholder="Password" required onkeydown="checkEnter(event)">
+        </div>
+        
+        <button class="login-btn" onclick="login()">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+        
+        <div id="message"></div>
     </div>
 
     <script>
@@ -88,10 +170,15 @@
             const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
             const message = document.getElementById("message");
+            
+            // Clear previous messages
+            message.textContent = "";
+            message.className = "";
 
             if (username === "sysadmin" && password === "password") {
-                message.textContent = "Login successful!";
-                message.style.color = "green";
+                message.textContent = "Login successful! Redirecting...";
+                message.classList.add("success-message");
+                
                 setTimeout(() => {
                     // Check if interm.html exists before redirecting
                     fetch("interm.html")
@@ -99,18 +186,24 @@
                             if (response.ok) {
                                 // If the page exists (status 200), redirect to interm.html
                                 window.location.href = "interm.html";
-                            } 
+                            } else {
+                                // If page doesn't exist, show error
+                                message.textContent = "Redirect page not found.";
+                                message.classList.remove("success-message");
+                                message.classList.add("error-message");
+                            }
                         })
                         .catch(error => {
                             // Handle network errors or other issues
                             console.error("Error fetching interm.html:", error);
-                            window.location.href = "interm.html";
+                            message.textContent = "Network error. Please try again.";
+                            message.classList.remove("success-message");
+                            message.classList.add("error-message");
                         });
                 }, 1000);
-
             } else {
-                message.textContent = "Invalid username or password.";
-                message.style.color = "red";    
+                message.textContent = "Invalid username or password";
+                message.classList.add("error-message");
             }
         }
     </script>
