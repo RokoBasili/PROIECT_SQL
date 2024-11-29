@@ -60,6 +60,28 @@ const requestHandler = async (req, res) => {
       }
     } 
   }
+  else if (req.url === "/fetch-tables" && req.method === "GET") {
+    try {
+      const query = `
+        SELECT table_name, column_name
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        ORDER BY table_name, ordinal_position;
+      `;
+      const result = await sql(query);
+      const tables = result.reduce((acc, { table_name, column_name }) => {
+        if (!acc[table_name]) acc[table_name] = [];
+        acc[table_name].push(column_name);
+        return acc;
+      }, {});
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(tables));
+    } catch (error) {
+      console.error("Error fetching table structures:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error fetching table structures" }));
+    }
+  }
   else if (req.method === 'DELETE' && req.url.startsWith('/delete/')) {
     const urlParts = req.url.split('/');
     const tableName = urlParts[2];
@@ -205,6 +227,256 @@ const requestHandler = async (req, res) => {
         res.end(JSON.stringify({ error: 'Error updating record' }));
       }
     });
+  }
+  else if (req.url === "/ComplexQuery.html" && req.method === "GET") {
+    fs.readFile("ComplexQuery.html", (err, data) => {
+      if (err) {
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Error loading complex query page");
+      } else {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(data);
+      }
+    });
+  } 
+  else if (req.url === "/JoinQuery.html" && req.method === "GET") {
+    fs.readFile("JoinQuery.html", (err, data) => {
+      if (err) {
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Error loading Join query page");
+      } else {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(data);
+      }
+    });
+  }
+  else if (req.method === "POST" && req.url === "/predefined-query-1") {
+    try {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+      req.on('end', async () => {
+        const { userInput } = JSON.parse(body);
+        const query = `
+          SELECT *
+          FROM medici m
+          JOIN cabinete c ON m.id_cabinet = c.id_cabinet
+          JOIN asistenti a ON m.id_medic = a.id_medic
+          ${userInput ? `WHERE m.nume_medic LIKE '${userInput}%'` : ''}
+        `;
+        const result = await sql(query);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      });
+    } catch (error) {
+      console.error("Error in predefined query 1:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error in predefined query 1" }));
+    }
+  } 
+  else if (req.method === "POST" && req.url === "/predefined-query-2") {
+    try {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+      req.on('end', async () => {
+        const { userInput } = JSON.parse(body);
+        const query = `
+          SELECT *
+          FROM medici m
+          JOIN pacienti p ON m.id_medic = p.id_medic
+          ${userInput ? `WHERE p.varsta_pacient <= ${parseInt(userInput)}` : ''}
+          ORDER BY p.varsta_pacient
+        `;
+        const result = await sql(query);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      });
+    } catch (error) {
+      console.error("Error in predefined query 2:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error in predefined query 2" }));
+    }
+  }
+  else if (req.method === "POST" && req.url === "/predefined-query-3") {
+    try {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+      req.on('end', async () => {
+        const { userInput } = JSON.parse(body);
+        const query = `
+          SELECT *
+          FROM pacienti p
+          JOIN consultatii c ON p.cnp = c.cnp
+          ${userInput ? `WHERE c.cnp LIKE '${userInput}%'` : ''}
+          ORDER BY c.an_consultatie DESC
+        `;
+        const result = await sql(query);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      });
+    } catch (error) {
+      console.error("Error in predefined query 3:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error in predefined query 3" }));
+    }
+  }
+  else if (req.method === "POST" && req.url === "/predefined-query-4") {
+    try {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+      req.on('end', async () => {
+        const { userInput } = JSON.parse(body);
+        const query = `
+          SELECT *
+          FROM consultatii c
+          LEFT JOIN retete r ON c.id_consultatie = r.id_consultatie
+          ORDER BY c.severitate_diagnostic
+        `;
+        const result = await sql(query);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      });
+    } catch (error) {
+      console.error("Error in predefined query 4:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error in predefined query 4" }));
+    }
+  }
+  else if (req.method === "POST" && req.url === "/predefined-query-5") {
+    try {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+      req.on('end', async () => {
+        const { userInput } = JSON.parse(body);
+        const query = `
+          SELECT *
+          FROM reteta_medicament rm
+          INNER JOIN medicamente m ON m.id_medicament = rm.id_medicament
+        `;
+        const result = await sql(query);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      });
+    } catch (error) {
+      console.error("Error in predefined query 5:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error in predefined query 5" }));
+    }
+  }
+  else if (req.method === "POST" && req.url === "/complex-query-1") {
+    try {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+      req.on('end', async () => {
+        const { userInput } = JSON.parse(body);
+        const query = `
+          SELECT m.nume_medic,m.prenume_medic,m.nrtelefon_medic,m.specializare_medic,m.data_nasterii,
+          (SELECT COUNT(*) 
+          FROM asistenti a 
+          WHERE a.id_medic = m.id_medic) AS Numar_Asistenti
+        FROM medici m
+        ${userInput ? `WHERE m.specializare_medic LIKE '%${userInput}%'` : ''}
+        `;
+        const result = await sql(query);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      });
+    } catch (error) {
+      console.error("Error in Complex query 1:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error in Complex query 1" }));
+    }
+  }
+  else if (req.method === "POST" && req.url === "/complex-query-2") {
+    try {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+      req.on('end', async () => {
+        const { userInput } = JSON.parse(body);
+        const query = `
+          SELECT m.nume_medic,m.prenume_medic,m.nrtelefon_medic,m.specializare_medic,m.data_nasterii,Count(a.id_medic) AS Nr_Pacienti
+          FROM medici m JOIN (SELECT p.nume_pacient,p.prenume_pacient,p.varsta_pacient,p.nrtelefon_pacient,
+                                                        p.ocupatie_actuala,c.diagnostic,c.data_consultatie,p.id_medic
+          FROM pacienti p JOIN consultatii c ON c.cnp=p.cnp 
+          WHERE existenta_id_reteta = 'TRUE' ${userInput ? `AND p.ocupatie_actuala LIKE '%${userInput}%'` : ''}) 
+          AS a ON m.id_medic=a.id_medic
+          WHERE data_nasterii>='1980-01-01'
+          GROUP BY m.id_medic
+          HAVING Count(a.id_medic)>=2 AND (AVG(a.varsta_pacient)>=25 AND AVG(a.varsta_pacient)<=65)
+          ORDER BY Count(a.id_medic)
+        `;
+        const result = await sql(query);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      });
+    } catch (error) {
+      console.error("Error in Complex query 2:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error in Complex query 2" }));
+    }
+  }
+  else if (req.method === "POST" && req.url === "/complex-query-3") {
+    try {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+      req.on('end', async () => {
+        const { userInput } = JSON.parse(body);
+        const query = `
+          SELECT ROUND(AVG(severitate_diagnostic),2) AS Medie_Severitate_Diag,an_consultatie,ROUND(AVG(varsta_pacient),2) AS Medie_Varsta_Pacient_An
+          FROM pacienti p JOIN consultatii c ON c.cnp=p.cnp
+          ${userInput ? `WHERE c.an_consultatie >= ${parseInt(userInput)}` : ''}
+          GROUP BY c.an_consultatie
+          ORDER BY c.an_consultatie
+        `;
+        const result = await sql(query);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      });
+    } catch (error) {
+      console.error("Error in Complex query 3:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error in Complex query 3" }));
+    }
+  }
+  else if (req.method === "POST" && req.url === "/complex-query-4") {
+    try {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+      req.on('end', async () => {
+        const { userInput } = JSON.parse(body);
+        const query = `
+          SELECT r.tip_reteta,COUNT(r.tip_reteta) AS Numar_de_Retete,ROUND(AVG(r.probstoc_suficient)) AS Medie_Indeplinire_Stoc
+          FROM retete AS r JOIN reteta_medicament AS rm ON r.id_reteta=rm.id_reteta
+          WHERE rm.medicament_nou='FALSE' AND rm.indeplinire_cerere='FALSE'
+          GROUP BY r.tip_reteta
+          ORDER BY Numar_de_Retete DESC,r.tip_reteta
+        `;
+        const result = await sql(query);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      });
+    } catch (error) {
+      console.error("Error in Complex query 4:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Error in Complex query 4" }));
+    }
   }
 };
 
